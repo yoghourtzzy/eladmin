@@ -37,12 +37,28 @@ public class TaskController {
         taskService.download(taskService.queryAll(criteria), response);
     }
 
-    @GetMapping
-    @Log("查询api/task")
-    @ApiOperation("查询api/task")
+//    @GetMapping
+//    @Log("查询api/task")
+//    @ApiOperation("查询api/task")
+//    @PreAuthorize("@el.check('task:list')")
+//    public ResponseEntity<Object> getTasks(TaskQueryCriteria criteria, Pageable pageable){
+//        return new ResponseEntity<>(taskService.queryAll(criteria,pageable),HttpStatus.OK);
+//    }
+
+    @GetMapping("/tome")
+    @Log("查询api/task/tome")
+    @ApiOperation("查询api/task/tome")
     @PreAuthorize("@el.check('task:list')")
-    public ResponseEntity<Object> getTasks(TaskQueryCriteria criteria, Pageable pageable){
-        return new ResponseEntity<>(taskService.queryAll(criteria,pageable),HttpStatus.OK);
+    public ResponseEntity<Object> getTasksToMe(TaskQueryCriteria criteria,Pageable pageable){
+        return new ResponseEntity<>(taskService.queryTaskToMe(criteria,pageable),HttpStatus.OK);
+    }
+
+    @PostMapping("/report")
+    @Log("查询api/task/tome")
+    @ApiOperation("查询api/task/tome")
+    @PreAuthorize("@el.check('taskreport:add')")
+    public ResponseEntity<Object> getTasksToMe(@Validated @RequestBody Task resources){
+        return new ResponseEntity<>(taskService.report(resources),HttpStatus.CREATED);
     }
 
     @PostMapping

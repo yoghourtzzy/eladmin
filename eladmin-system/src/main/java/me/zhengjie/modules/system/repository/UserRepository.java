@@ -45,4 +45,11 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Modifying
     @Query(value = "update user set email = ?2 where username = ?1",nativeQuery = true)
     void updateEmail(String username, String email);
+
+    /**
+     * 获取最大的工号
+     * @return Long 最大工号
+     */
+    @Query(value = "select max(num) from user",nativeQuery = true)
+    Long getMaxUserNum();
 }

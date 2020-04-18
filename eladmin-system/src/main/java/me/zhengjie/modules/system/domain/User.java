@@ -29,6 +29,10 @@ public class User implements Serializable {
     @NotNull(groups = Update.class)
     private Long id;
 
+    /**跟前端无关，插入时自动生成**/
+    @Column(name ="num")
+    private Long num;
+
     @NotBlank
     @Column(unique = true)
     private String username;

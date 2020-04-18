@@ -84,6 +84,8 @@ public class UserServiceImpl implements UserService {
         if(userRepository.findByEmail(resources.getEmail())!=null){
             throw new EntityExistException(User.class,"email",resources.getEmail());
         }
+        //设置工号
+        resources.setNum(getNewUserNum());
         return userMapper.toDto(userRepository.save(resources));
     }
 
@@ -133,6 +135,11 @@ public class UserServiceImpl implements UserService {
         user.setPhone(resources.getPhone());
         user.setSex(resources.getSex());
         userRepository.save(user);
+    }
+
+    @Override
+    public Long getNewUserNum() {
+        return userRepository.getMaxUserNum()+1;
     }
 
     @Override

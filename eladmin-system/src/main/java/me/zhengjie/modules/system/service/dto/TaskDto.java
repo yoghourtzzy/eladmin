@@ -1,6 +1,8 @@
 package me.zhengjie.modules.system.service.dto;
 
 import lombok.Data;
+
+import javax.persistence.Column;
 import java.sql.Timestamp;
 import java.io.Serializable;
 
@@ -13,9 +15,18 @@ public class TaskDto implements Serializable {
 
     private Long id;
 
+    private String taskName;
+    private String detailContent;
+
     private Long fromUserId;
 
     private Long toUserId;
+
+    /** 发布者姓名 */
+    private String fromUserName;
+
+    /** 指定人的姓名 */
+    private String toUserName;
 
     /** 任务开始时间 */
     private Timestamp startTime;
@@ -28,9 +39,9 @@ public class TaskDto implements Serializable {
 
     private Timestamp createTime;
 
-    /** 发布者姓名 */
-    private String fromUserName;
+    String reportContent;
 
-    /** 指定人的姓名 */
-    private String toUserName;
+    Integer score;
+
+    Timestamp reportTime;
 }

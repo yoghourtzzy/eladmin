@@ -10,4 +10,6 @@ import me.zhengjie.annotation.Query;
 */
 @Data
 public class TaskQueryCriteria{
+    @Query
+    private Integer state;
 }

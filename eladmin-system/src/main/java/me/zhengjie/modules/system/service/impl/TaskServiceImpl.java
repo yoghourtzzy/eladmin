@@ -1,8 +1,11 @@
 package me.zhengjie.modules.system.service.impl;
 
+import cn.hutool.core.date.DateTime;
 import me.zhengjie.modules.system.domain.Task;
-import me.zhengjie.utils.ValidationUtil;
-import me.zhengjie.utils.FileUtil;
+import me.zhengjie.modules.system.domain.User;
+import me.zhengjie.modules.system.repository.UserRepository;
+import me.zhengjie.modules.system.service.dto.TaskDatabaseCriteria;
+import me.zhengjie.utils.*;
 import me.zhengjie.modules.system.repository.TaskRepository;
 import me.zhengjie.modules.system.service.TaskService;
 import me.zhengjie.modules.system.service.dto.TaskDto;
@@ -17,11 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 //import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import me.zhengjie.utils.PageUtil;
-import me.zhengjie.utils.QueryHelp;
+
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.io.IOException;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,6 +40,8 @@ import java.util.LinkedHashMap;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    @Resource
+    private  UserRepository userRepository;
 
     private final TaskMapper taskMapper;
 
@@ -47,6 +54,16 @@ public class TaskServiceImpl implements TaskService {
     //@Cacheable
     public Map<String,Object> queryAll(TaskQueryCriteria criteria, Pageable pageable){
         Page<Task> page = taskRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
+        return PageUtil.toPage(page.map(taskMapper::toDto));
+    }
+
+    @Override
+    public Map<String, Object> queryTaskToMe(TaskQueryCriteria criteria,Pageable pageable) {
+        User user = userRepository.findByUsername(SecurityUtils.getUsername());
+        TaskDatabaseCriteria databaseCriteria = new TaskDatabaseCriteria();
+        databaseCriteria.setToUserId(user.getId());
+        databaseCriteria.setState(criteria.getState());
+        Page<Task> page = taskRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, databaseCriteria, criteriaBuilder), pageable);
         return PageUtil.toPage(page.map(taskMapper::toDto));
     }
 
@@ -67,6 +84,10 @@ public class TaskServiceImpl implements TaskService {
     @Override
     //@CacheEvict(allEntries = true)
     public TaskDto create(Task resources) {
+        String username= SecurityUtils.getUsername();
+        resources.setFromUserName(username);
+        resources.setFromUserId(userRepository.findByUsername(username).getId());
+        resources.setState(0);
         return taskMapper.toDto(taskRepository.save(resources));
     }
 
@@ -104,5 +125,19 @@ public class TaskServiceImpl implements TaskService {
             list.add(map);
         }
         FileUtil.downloadExcel(list, response);
+    }
+
+    /**
+     * 汇报任务
+     * @param resources 汇报内容
+     * @return
+     */
+    @Override
+    public TaskDto report(Task resources) {
+        Task task=taskRepository.getOne(resources.getId());
+        task.setReportContent(resources.getReportContent());
+        task.setReportTime(new Timestamp(System.currentTimeMillis()));
+        task.setState(1);
+        return taskMapper.toDto(taskRepository.save(task));
     }
 }

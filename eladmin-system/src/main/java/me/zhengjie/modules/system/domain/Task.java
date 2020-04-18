@@ -26,12 +26,26 @@ public class Task implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+    @Column(name = "task_name")
+    private String taskName;
+
+    @Column(name="detail_content")
+    private String detailContent;
 
     @Column(name = "from_user_id")
     private Long fromUserId;
 
     @Column(name = "to_user_id")
     private Long toUserId;
+
+    /** 发布者姓名 */
+    @Column(name = "from_user_name")
+    private String fromUserName;
+
+    /** 指定人的姓名 */
+    @Column(name = "to_user_name")
+    private String toUserName;
+
 
     /** 任务开始时间 */
     @Column(name = "start_time")
@@ -45,6 +59,15 @@ public class Task implements Serializable {
     @Column(name = "state")
     private Integer state;
 
+    @Column(name = "report_content")
+    String reportContent;
+
+    @Column(name = "score")
+    Integer score;
+
+    @Column(name = "report_time")
+    Timestamp reportTime;
+
     @Column(name = "create_time")
     @CreationTimestamp
     private Timestamp createTime;
@@ -53,13 +76,6 @@ public class Task implements Serializable {
     @UpdateTimestamp
     private Timestamp updateTime;
 
-    /** 发布者姓名 */
-    @Column(name = "from_user_name")
-    private String fromUserName;
-
-    /** 指定人的姓名 */
-    @Column(name = "to_user_name")
-    private String toUserName;
 
     public void copy(Task source){
         BeanUtil.copyProperties(source,this, CopyOptions.create().setIgnoreNullValue(true));

@@ -97,4 +97,10 @@ public interface UserService {
      * @param resources /
      */
     void updateCenter(User resources);
+
+    /**
+     * 自动生成最新的工号
+     * @return
+     */
+    Long getNewUserNum();
 }

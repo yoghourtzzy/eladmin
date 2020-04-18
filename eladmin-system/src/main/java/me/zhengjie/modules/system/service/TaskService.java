@@ -24,11 +24,20 @@ public interface TaskService {
     Map<String,Object> queryAll(TaskQueryCriteria criteria, Pageable pageable);
 
     /**
+     * 查询所有分配给我的任务
+     * @param pageable 分页参数
+     * @return  Map<String,Object>
+     */
+    Map<String,Object> queryTaskToMe(TaskQueryCriteria criteria ,Pageable pageable);
+
+
+    /**
     * 查询所有数据不分页
     * @param criteria 条件参数
     * @return List<TaskDto>
     */
     List<TaskDto> queryAll(TaskQueryCriteria criteria);
+
 
     /**
      * 根据ID查询
@@ -63,4 +72,7 @@ public interface TaskService {
     * @throws IOException /
     */
     void download(List<TaskDto> all, HttpServletResponse response) throws IOException;
+
+    //以下为任务汇报相关内容
+    TaskDto report(Task resources);
 }
