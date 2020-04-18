@@ -1,5 +1,6 @@
 package me.zhengjie.modules.system.rest;
 
+
 import me.zhengjie.aop.log.Log;
 import me.zhengjie.modules.system.domain.Task;
 import me.zhengjie.modules.system.service.TaskService;
@@ -53,13 +54,6 @@ public class TaskController {
         return new ResponseEntity<>(taskService.queryTaskToMe(criteria,pageable),HttpStatus.OK);
     }
 
-    @PostMapping("/report")
-    @Log("查询api/task/tome")
-    @ApiOperation("查询api/task/tome")
-    @PreAuthorize("@el.check('taskreport:add')")
-    public ResponseEntity<Object> getTasksToMe(@Validated @RequestBody Task resources){
-        return new ResponseEntity<>(taskService.report(resources),HttpStatus.CREATED);
-    }
 
     @PostMapping
     @Log("新增api/task")
@@ -86,4 +80,25 @@ public class TaskController {
         taskService.deleteAll(ids);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+    @Log("新增api/task/report")
+    @ApiOperation("新增api/task/report")
+    @PreAuthorize("@el.check('taskreport:add')")
+    @PostMapping("/report")
+    public ResponseEntity<Object> getTasksToMe(@Validated @RequestBody Task resources){
+        return new ResponseEntity<>(taskService.report(resources),HttpStatus.CREATED);
+    }
+
+
+
+    @Log("删除api/task/report")
+    @ApiOperation("删除api/task/report")
+    @PreAuthorize("@el.check('taskreport:del')")
+    @DeleteMapping("/report")
+    public ResponseEntity<Object> deleteReport(@RequestBody Long id) throws Exception {
+        taskService.deleteReport(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

@@ -74,5 +74,18 @@ public interface TaskService {
     void download(List<TaskDto> all, HttpServletResponse response) throws IOException;
 
     //以下为任务汇报相关内容
+
+    /**
+     * 汇报任务
+     * @param resources
+     * @return TaskDto
+     */
     TaskDto report(Task resources);
+
+    /**
+     * 删除任务汇报
+     * @param id 任务id
+     * @throws Exception 任务已经被评审
+     */
+    void deleteReport(Long id) throws Exception;
 }

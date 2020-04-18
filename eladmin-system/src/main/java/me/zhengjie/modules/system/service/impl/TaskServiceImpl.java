@@ -11,6 +11,7 @@ import me.zhengjie.modules.system.service.TaskService;
 import me.zhengjie.modules.system.service.dto.TaskDto;
 import me.zhengjie.modules.system.service.dto.TaskQueryCriteria;
 import me.zhengjie.modules.system.service.mapper.TaskMapper;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,5 +140,18 @@ public class TaskServiceImpl implements TaskService {
         task.setReportTime(new Timestamp(System.currentTimeMillis()));
         task.setState(1);
         return taskMapper.toDto(taskRepository.save(task));
+    }
+
+    @Override
+    public void deleteReport(Long id) throws Exception{
+        Task task=taskRepository.getOne(id);
+        //有一种情况就是点击删除的时候任务已经被评审了，但是前端没有更新
+        if(task.getState()==2){
+            throw new Exception("任务已经评审,请刷新");
+        }
+        task.setReportContent(null);
+        task.setReportTime(null);
+        task.setState(0);
+        taskRepository.save(task);
     }
 }
