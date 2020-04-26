@@ -25,10 +25,19 @@ public interface TaskService {
 
     /**
      * 查询所有分配给我的任务
+     *  @param criteria 查询参数
      * @param pageable 分页参数
      * @return  Map<String,Object>
      */
     Map<String,Object> queryTaskToMe(TaskQueryCriteria criteria ,Pageable pageable);
+
+    /**
+     * 查询所有我分配的任务
+     * @param criteria 查询参数
+     * @param pageable 分页参数
+     * @return  Map<String,Object>
+     */
+    Map<String,Object> queryTaskFromMe(TaskQueryCriteria criteria ,Pageable pageable);
 
 
     /**
@@ -66,6 +75,12 @@ public interface TaskService {
     void deleteAll(Long[] ids);
 
     /**
+     * 单个删除
+     * @param id /
+     */
+    void delete(Long id) throws Exception;
+
+    /**
     * 导出数据
     * @param all 待导出的数据
     * @param response /
@@ -80,7 +95,7 @@ public interface TaskService {
      * @param resources
      * @return TaskDto
      */
-    TaskDto report(Task resources);
+    TaskDto report(Task resources) throws Exception;
 
     /**
      * 删除任务汇报
@@ -88,4 +103,11 @@ public interface TaskService {
      * @throws Exception 任务已经被评审
      */
     void deleteReport(Long id) throws Exception;
+
+    /**
+     * 任务评分
+     * @param resources
+     * @return
+     */
+    TaskDto grade(Task resources) throws Exception;
 }

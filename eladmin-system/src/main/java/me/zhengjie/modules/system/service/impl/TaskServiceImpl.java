@@ -69,6 +69,16 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public Map<String, Object> queryTaskFromMe(TaskQueryCriteria criteria, Pageable pageable) {
+        User user = userRepository.findByUsername(SecurityUtils.getUsername());
+        TaskDatabaseCriteria databaseCriteria = new TaskDatabaseCriteria();
+        databaseCriteria.setFromUserId(user.getId());
+        databaseCriteria.setState(criteria.getState());
+        Page<Task> page = taskRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, databaseCriteria, criteriaBuilder), pageable);
+        return PageUtil.toPage(page.map(taskMapper::toDto));
+    }
+
+    @Override
     //@Cacheable
     public List<TaskDto> queryAll(TaskQueryCriteria criteria){
         return taskMapper.toDto(taskRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
@@ -111,6 +121,15 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public void delete(Long id) throws Exception {
+        Task task=taskRepository.getOne(id);
+        if(task.getState()==1){
+            throw  new Exception("任务已经汇报，无法删除");
+        }
+        taskRepository.deleteById(id);
+    }
+
+    @Override
     public void download(List<TaskDto> all, HttpServletResponse response) throws IOException {
         List<Map<String, Object>> list = new ArrayList<>();
         for (TaskDto task : all) {
@@ -134,8 +153,12 @@ public class TaskServiceImpl implements TaskService {
      * @return
      */
     @Override
-    public TaskDto report(Task resources) {
+    public TaskDto report(Task resources) throws Exception {
         Task task=taskRepository.getOne(resources.getId());
+        //汇报时任务已经被删除
+        if(task==null){
+            throw new Exception("任务已被删除，请刷新");
+        }
         task.setReportContent(resources.getReportContent());
         task.setReportTime(new Timestamp(System.currentTimeMillis()));
         task.setState(1);
@@ -145,7 +168,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteReport(Long id) throws Exception{
         Task task=taskRepository.getOne(id);
-        //有一种情况就是点击删除的时候任务已经被评审了，但是前端没有更新
+        //有一种情况就是点击删除汇报的时候任务已经被评审了，但是前端没有更新
         if(task.getState()==2){
             throw new Exception("任务已经评审,请刷新");
         }
@@ -153,5 +176,17 @@ public class TaskServiceImpl implements TaskService {
         task.setReportTime(null);
         task.setState(0);
         taskRepository.save(task);
+    }
+
+    @Override
+    public TaskDto grade(Task resources) throws Exception {
+        //有一种情况就是点击评分的时候任务已经删除汇报了，但是前端没有更新
+        Task task=taskRepository.getOne(resources.getId());
+        if(task.getState()==0){
+            throw new Exception("任务已经撤回汇报,请刷新");
+        }
+        task.setScore(resources.getScore());
+        task.setState(2);
+        return taskMapper.toDto(taskRepository.save(task));
     }
 }

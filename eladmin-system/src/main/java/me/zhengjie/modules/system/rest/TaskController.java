@@ -49,9 +49,17 @@ public class TaskController {
     @GetMapping("/tome")
     @Log("查询api/task/tome")
     @ApiOperation("查询api/task/tome")
-    @PreAuthorize("@el.check('task:list')")
+    @PreAuthorize("@el.check('task:tome')")
     public ResponseEntity<Object> getTasksToMe(TaskQueryCriteria criteria,Pageable pageable){
         return new ResponseEntity<>(taskService.queryTaskToMe(criteria,pageable),HttpStatus.OK);
+    }
+
+    @GetMapping("/fromme")
+    @Log("查询api/task/fromme")
+    @ApiOperation("查询api/task/fromme")
+    @PreAuthorize("@el.check('task:fromme')")
+    public ResponseEntity<Object> getTaskFromMe(TaskQueryCriteria criteria,Pageable pageable){
+        return new ResponseEntity<>(taskService.queryTaskFromMe(criteria,pageable),HttpStatus.OK);
     }
 
 
@@ -76,8 +84,8 @@ public class TaskController {
     @ApiOperation("删除api/task")
     @PreAuthorize("@el.check('task:del')")
     @DeleteMapping
-    public ResponseEntity<Object> deleteAll(@RequestBody Long[] ids) {
-        taskService.deleteAll(ids);
+    public ResponseEntity<Object> deleteAll(@RequestBody Long id) throws Exception {
+        taskService.delete(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -86,7 +94,7 @@ public class TaskController {
     @ApiOperation("新增api/task/report")
     @PreAuthorize("@el.check('taskreport:add')")
     @PostMapping("/report")
-    public ResponseEntity<Object> getTasksToMe(@Validated @RequestBody Task resources){
+    public ResponseEntity<Object> getTasksToMe(@Validated @RequestBody Task resources) throws Exception {
         return new ResponseEntity<>(taskService.report(resources),HttpStatus.CREATED);
     }
 
@@ -99,6 +107,20 @@ public class TaskController {
     public ResponseEntity<Object> deleteReport(@RequestBody Long id) throws Exception {
         taskService.deleteReport(id);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * 任务评分接口
+     * @param
+     * @return
+     * @throws Exception
+     */
+    @Log("修改api/task/grade")
+    @ApiOperation("修改api/task/grade")
+    @PreAuthorize("@el.check('task:grade')")
+    @PutMapping("/grade")
+    public ResponseEntity<Object> grade(@RequestBody Task resources) throws Exception {
+        return new ResponseEntity<>( taskService.grade(resources),HttpStatus.OK);
     }
 
 }
