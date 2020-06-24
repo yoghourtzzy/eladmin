@@ -1,9 +1,12 @@
 package me.zhengjie.modules.system.service.impl;
 
+import me.zhengjie.modules.system.domain.Dept;
+import me.zhengjie.modules.system.domain.Role;
 import me.zhengjie.modules.system.domain.User;
 import me.zhengjie.exception.EntityExistException;
 import me.zhengjie.exception.EntityNotFoundException;
 import me.zhengjie.modules.system.domain.UserAvatar;
+import me.zhengjie.modules.system.repository.DeptRepository;
 import me.zhengjie.modules.system.repository.UserAvatarRepository;
 import me.zhengjie.modules.system.repository.UserRepository;
 import me.zhengjie.modules.system.service.UserService;
@@ -22,9 +25,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryIteratorException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +47,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RedisUtils redisUtils;
     private final UserAvatarRepository userAvatarRepository;
+    @Resource
+    private  DeptRepository deptRepository;
 
     @Value("${file.avatar}")
     private String avatar;
@@ -137,6 +145,70 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public List<UserDto> getDirector(String username) throws Exception {
+        //获取当前用户
+        if(username==null){
+            username= SecurityUtils.getUsername();
+        }
+        User currentUser=userRepository.findByUsername(username);
+        Set<Role> currentUserRoles=currentUser.getRoles();
+        boolean isDirector=hasRoles(currentUserRoles,"部门主管");//是否是部门主管
+
+        List<UserDto> directorList=new ArrayList<>();
+        List<User> userInDept;
+        if(isDirector){
+          //部门主管的处理方式
+            Dept parentDept=deptRepository.findById(currentUser.getDept().getPid()).get();
+            userInDept=userRepository.findByDeptId(parentDept.getId());
+
+        }else{
+            //普通员工的处理方式
+            userInDept =userRepository.findByDeptId(currentUser.getDept().getId());
+        }
+
+        for(User item:userInDept){
+            if(hasRoles(item.getRoles(),"部门主管")){
+                directorList.add(userMapper.toDto(item));
+            }
+        }
+        return directorList;
+    }
+
+
+    /**
+     * 判断用户是否有某个权限
+     * @param roleList
+     * @param roleName
+     * @return
+     * @throws Exception
+     */
+    private  boolean hasRoles(Set<Role> roleList,String roleName) throws Exception {
+        if(roleList==null||roleName==null){
+            throw new Exception("roleList或roleName为空");
+        }
+        for(Role item:roleList){
+            if(roleName.equals(item.getName())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public  boolean hasRoles(User user,String roleName) throws Exception{
+        Set<Role> roleList=user.getRoles();
+        if(roleList==null||roleName==null){
+            throw new Exception("roleList或roleName为空");
+        }
+        for(Role item:roleList){
+            if(roleName.equals(item.getName())){
+                return true;
+            }
+        }
+        return false;
+    }
     @Override
     public Long getNewUserNum() {
         return userRepository.getMaxUserNum()+1;

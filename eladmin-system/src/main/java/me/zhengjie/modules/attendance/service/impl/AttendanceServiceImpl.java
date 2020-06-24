@@ -1,13 +1,14 @@
 package me.zhengjie.modules.attendance.service.impl;
 
 import me.zhengjie.modules.attendance.domain.Attendance;
+import me.zhengjie.modules.attendance.service.dto.AttendanceDateScaleQueryCriteria;
+import me.zhengjie.modules.attendance.service.dto.AttendanceRecDateQueryCriteria;
 import me.zhengjie.modules.system.domain.User;
 import me.zhengjie.modules.system.repository.UserRepository;
 import me.zhengjie.utils.*;
 import me.zhengjie.modules.attendance.repository.AttendanceRepository;
 import me.zhengjie.modules.attendance.service.AttendanceService;
 import me.zhengjie.modules.attendance.service.dto.AttendanceDto;
-import me.zhengjie.modules.attendance.service.dto.AttendanceQueryCriteria;
 import me.zhengjie.modules.attendance.service.mapper.AttendanceMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -51,19 +52,19 @@ public class AttendanceServiceImpl implements AttendanceService {
         this.attendanceRepository = attendanceRepository;
         this.attendanceMapper = attendanceMapper;
     }
-
-    @Override
-    //@Cacheable
-    public Map<String,Object> queryAll(AttendanceQueryCriteria criteria, Pageable pageable){
-        Page<Attendance> page = attendanceRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
-        return PageUtil.toPage(page.map(attendanceMapper::toDto));
-    }
-
-    @Override
-    //@Cacheable
-    public List<AttendanceDto> queryAll(AttendanceQueryCriteria criteria){
-        return attendanceMapper.toDto(attendanceRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
-    }
+//
+//    @Override
+//    //@Cacheable
+//    public Map<String,Object> queryAll(AttendanceQueryCriteria criteria, Pageable pageable){
+//        Page<Attendance> page = attendanceRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
+//        return PageUtil.toPage(page.map(attendanceMapper::toDto));
+//    }
+//
+//    @Override
+//    //@Cacheable
+//    public List<AttendanceDto> queryAll(AttendanceQueryCriteria criteria ){
+//        return attendanceMapper.toDto(attendanceRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
+//    }
 
     @Override
     //@Cacheable(key = "#p0")
@@ -136,9 +137,46 @@ public class AttendanceServiceImpl implements AttendanceService {
         String username= SecurityUtils.getUsername();
         User user=userRepository.findByUsername(username);
         attendance=new Attendance();
+        attendance.setRecDate(new Date(System.currentTimeMillis()));
         attendance.setState(0);
         attendance.setStartTime(new Timestamp(System.currentTimeMillis()));
         attendance.setUserId(user.getId());
-        return  attendanceMapper.toDto(attendanceRepository.save(attendance));
+        return  attendanceMapper.toDto(attendanceRepository.save(attendance ));
+    }
+
+    @Override
+    public AttendanceDto checkout() throws Exception {
+        //多次签退，直接覆盖记录
+        Attendance attendance=attendanceRepository.findByRecDate(new Date(System.currentTimeMillis()));
+        if(attendance==null){
+            throw new Exception("未签到，请先签到");
+        }
+        attendance.setFinishTime(new Timestamp(System.currentTimeMillis()));
+        return attendanceMapper.toDto(attendanceRepository.save(attendance));
+
+    }
+
+    @Override
+        public List<AttendanceDto> queryAttendances(List<Date> scale) {
+        AttendanceDateScaleQueryCriteria criteria=new AttendanceDateScaleQueryCriteria();
+        String username= SecurityUtils.getUsername();
+        criteria.setUserId(userRepository.findByUsername(username).getId());
+        criteria.setRecDate(scale);
+        return attendanceMapper.toDto(attendanceRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
+    }
+
+    @Override
+    public AttendanceDto queryAttendance(Date date) {
+        AttendanceRecDateQueryCriteria criteria=new AttendanceRecDateQueryCriteria();
+        String username= SecurityUtils.getUsername();
+        criteria.setUserId(userRepository.findByUsername(username).getId());
+        criteria.setRecDate(date);
+        List<Attendance> attendances=attendanceRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder));
+        if(attendances.isEmpty()){
+            return null;
+        }else{
+            return attendanceMapper.toDto(attendances.get(0));
+        }
+
     }
 }

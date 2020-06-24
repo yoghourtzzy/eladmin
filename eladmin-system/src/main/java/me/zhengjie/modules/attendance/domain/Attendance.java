@@ -21,6 +21,7 @@ import java.io.Serializable;
 public class Attendance implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 

@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Zheng Jie
@@ -26,6 +28,13 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
      * @return /
      */
     User findByEmail(String email);
+
+    /**
+     * 根据部门查询
+     * @param deptId
+     * @return
+     */
+    List<User> findByDeptId(Long deptId);
 
     /**
      * 修改密码

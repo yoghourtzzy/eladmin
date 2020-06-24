@@ -61,6 +61,21 @@ public class DeptController {
         return new ResponseEntity<>(deptService.buildTree(deptDtos),HttpStatus.OK);
     }
 
+    /**
+     * 非树形返回部门
+     * @param criteria
+     * @return
+     */
+    @Log("查询部门")
+    @ApiOperation("查询部门")
+    @GetMapping("/list")
+    public ResponseEntity<Object> getDeptsList(DeptQueryCriteria criteria){
+        // 数据权限
+        criteria.setIds(dataScope.getDeptIds());
+        List<DeptDto> deptDtos = deptService.queryAll(criteria);
+        return new ResponseEntity<>(deptDtos,HttpStatus.OK);
+    }
+
     @Log("新增部门")
     @ApiOperation("新增部门")
     @PostMapping

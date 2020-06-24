@@ -17,6 +17,7 @@ import java.io.Serializable;
 public class EmailConfig implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /** 邮件服务器SMTP地址 */

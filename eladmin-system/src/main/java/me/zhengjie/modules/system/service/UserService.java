@@ -1,5 +1,6 @@
 package me.zhengjie.modules.system.service;
 
+import me.zhengjie.modules.system.domain.Role;
 import me.zhengjie.modules.system.domain.User;
 import me.zhengjie.modules.system.service.dto.UserDto;
 import me.zhengjie.modules.system.service.dto.UserQueryCriteria;
@@ -99,8 +100,22 @@ public interface UserService {
     void updateCenter(User resources);
 
     /**
+     * 查找当前用户的部门主管
+     * @return
+     */
+    List<UserDto> getDirector(String username) throws Exception;
+    /**
      * 自动生成最新的工号
      * @return
      */
     Long getNewUserNum();
+
+    /**
+     * 查看受否存在某个权限
+     * @param roleList
+     * @param roleName
+     * @return
+     * @throws Exception
+     */
+    public boolean hasRoles(User user, String roleName) throws Exception;
 }

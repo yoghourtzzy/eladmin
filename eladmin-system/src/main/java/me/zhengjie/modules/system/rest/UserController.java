@@ -103,10 +103,11 @@ public class UserController {
         }
     }
 
+
     @Log("新增用户")
     @ApiOperation("新增用户")
     @PostMapping
-    @PreAuthorize("@el.check('user:add')")
+    //@PreAuthorize("@el.check('user:add')")
     public ResponseEntity<Object> create(@Validated @RequestBody User resources){
         checkLevel(resources);
         // 默认密码 123456
@@ -195,6 +196,15 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Log("查找登录用户主管")
+    @ApiOperation("查找登录用户主管")
+    @GetMapping(value ="director")
+    //@PreAuthorize("@el.check('user:getdirector')")
+    public ResponseEntity<Object> getDirector() throws Exception {
+        return new ResponseEntity<>(userService.getDirector(null),HttpStatus.OK);
+    }
+
+
     /**
      * 如果当前用户的角色级别低于创建用户的角色级别，则抛出权限不足的错误
      * @param resources /
@@ -207,4 +217,7 @@ public class UserController {
             throw new BadRequestException("角色权限不足");
         }
     }
+
+
+
 }

@@ -4,6 +4,7 @@ package me.zhengjie.modules.system.rest;
 import me.zhengjie.aop.log.Log;
 import me.zhengjie.modules.system.domain.Task;
 import me.zhengjie.modules.system.service.TaskService;
+import me.zhengjie.modules.system.service.dto.TaskMonthlyAveScoreDto;
 import me.zhengjie.modules.system.service.dto.TaskQueryCriteria;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.*;
 import java.io.IOException;
+import java.sql.Date;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -121,6 +123,12 @@ public class TaskController {
     @PutMapping("/grade")
     public ResponseEntity<Object> grade(@RequestBody Task resources) throws Exception {
         return new ResponseEntity<>( taskService.grade(resources),HttpStatus.OK);
+    }
+    @Log("均分api/task/ave")
+    @ApiOperation("均分/task/ave")
+    @GetMapping("/ave")
+    public ResponseEntity<Object> getMonthLyAveScore(TaskMonthlyAveScoreDto dto) throws Exception {
+        return new ResponseEntity<>( taskService.monthlyAveScore(dto.getUserid(),dto.getMonth()),HttpStatus.OK);
     }
 
 }

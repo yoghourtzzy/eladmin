@@ -3,7 +3,6 @@ package me.zhengjie.modules.attendance.rest;
 import me.zhengjie.aop.log.Log;
 import me.zhengjie.modules.attendance.domain.Attendance;
 import me.zhengjie.modules.attendance.service.AttendanceService;
-import me.zhengjie.modules.attendance.service.dto.AttendanceQueryCriteria;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.*;
 import java.io.IOException;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -29,20 +31,50 @@ public class AttendanceController {
         this.attendanceService = attendanceService;
     }
 
-    @Log("导出数据")
-    @ApiOperation("导出数据")
-    @GetMapping(value = "/download")
-    @PreAuthorize("@el.check('attendance:list')")
-    public void download(HttpServletResponse response, AttendanceQueryCriteria criteria) throws IOException {
-        attendanceService.download(attendanceService.queryAll(criteria), response);
+//    @Log("导出数据")
+//    @ApiOperation("导出数据")
+//    @GetMapping(value = "/download")
+//    @PreAuthorize("@el.check('attendance:list')")
+//    public void download(HttpServletResponse response, AttendanceQueryCriteria criteria) throws IOException {
+//        attendanceService.download(attendanceService.queryAll(criteria), response);
+//    }
+
+//    @GetMapping
+//    @Log("list api/attendance")
+//    @ApiOperation("list api/attendance")
+//    @PreAuthorize("@el.check('attendance:list')")
+//    public ResponseEntity<Object> getAttendances(AttendanceQueryCriteria criteria, Pageable pageable){
+//        return new ResponseEntity<>(attendanceService.queryAll(criteria,pageable),HttpStatus.OK);
+//    }
+
+
+    /**
+     * 查询多天打卡记录
+     * @param fromDate tpDate
+     * @return /
+     */
+    @GetMapping("/scale")
+    @Log("list api/attendance/scale")
+    @ApiOperation("list api/attendance/scale")
+    @PreAuthorize("@el.check('attendance:scale')")
+    public ResponseEntity<Object> getAttendances(Date fromDate,Date toDate){
+        List<Date> scale=new ArrayList<>();
+        scale.add(fromDate);
+        scale.add(toDate);
+        return new ResponseEntity<>(attendanceService.queryAttendances(scale),HttpStatus.OK);
     }
 
-    @GetMapping
-    @Log("查询api/attendance")
-    @ApiOperation("查询api/attendance")
-    @PreAuthorize("@el.check('attendance:list')")
-    public ResponseEntity<Object> getAttendances(AttendanceQueryCriteria criteria, Pageable pageable){
-        return new ResponseEntity<>(attendanceService.queryAll(criteria,pageable),HttpStatus.OK);
+    /**
+     * 查询单天打卡记录
+     * @param date  要查询的日期
+     * @return /
+     */
+    @GetMapping("findbydate")
+    @Log("查询 api/attendance/findbydate")
+    @ApiOperation("查询 api/attendance/findbydate")
+    @PreAuthorize("@el.check('attendance:findbydate')")
+    public ResponseEntity<Object> getAttendance(Date date){
+        return new ResponseEntity<>(attendanceService.queryAttendance(date),HttpStatus.OK);
     }
 
     @PostMapping
@@ -72,11 +104,21 @@ public class AttendanceController {
     }
 
 
-    @PostMapping
+    @PostMapping("/checkin")
     @Log("api/attendance/checkin")
-    @ApiOperation("api/attendance/clockin")
+    @ApiOperation("api/attendance/checkkin")
     @PreAuthorize("@el.check('attendance:checkin')")
-    public ResponseEntity<Object> clockin(){
+    public ResponseEntity<Object> checkin(){
         return new ResponseEntity<>(attendanceService.checkin(),HttpStatus.CREATED);
     }
+
+    @PostMapping("/checkout")
+    @Log("api/attendance/checkout")
+    @ApiOperation("api/attendance/checkkout")
+    @PreAuthorize("@el.check('attendance:checkout')")
+    public ResponseEntity<Object> checkout() throws Exception {
+        return new ResponseEntity<>(attendanceService.checkout(),HttpStatus.CREATED);
+    }
+
+
 }

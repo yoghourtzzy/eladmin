@@ -1,6 +1,7 @@
 package me.zhengjie.modules.system.service.impl;
 
 import cn.hutool.core.date.DateTime;
+import me.zhengjie.annotation.Query;
 import me.zhengjie.modules.system.domain.Task;
 import me.zhengjie.modules.system.domain.User;
 import me.zhengjie.modules.system.repository.UserRepository;
@@ -22,15 +23,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.sql.Array;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
 import java.io.IOException;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 /**
 * @author zzy
@@ -161,7 +163,7 @@ public class TaskServiceImpl implements TaskService {
         }
         task.setReportContent(resources.getReportContent());
         task.setReportTime(new Timestamp(System.currentTimeMillis()));
-        task.setState(1);
+          task.setState(1);
         return taskMapper.toDto(taskRepository.save(task));
     }
 
@@ -188,5 +190,27 @@ public class TaskServiceImpl implements TaskService {
         task.setScore(resources.getScore());
         task.setState(2);
         return taskMapper.toDto(taskRepository.save(task));
+    }
+
+    @Override
+    public Double monthlyAveScore(Long userid,Timestamp month) {
+        TaskDatabaseCriteria queryCriteria=new TaskDatabaseCriteria();
+        queryCriteria.setToUserId(userid);
+        LocalDate oneDay=month.toLocalDateTime().toLocalDate();
+        LocalDate firstDay = oneDay.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate lastDay = oneDay.with(TemporalAdjusters.lastDayOfMonth());
+        List<Date> dateScale=new ArrayList<>();
+        dateScale.add(Date.valueOf(firstDay));
+        dateScale.add(Date.valueOf(lastDay));
+        queryCriteria.setFinishTime(dateScale);
+        queryCriteria.setState(2);
+        List<Task> taskList=taskRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,queryCriteria,criteriaBuilder));
+        List<Integer> taskScoreList=taskList.stream().map(Task::getScore).collect(Collectors.toList());
+        if(taskList.isEmpty()){
+            return 0.0;
+        }else{
+            Integer sum= taskScoreList.stream().mapToInt((x)->x).sum();
+            return (double) sum / taskList.size();
+        }
     }
 }
